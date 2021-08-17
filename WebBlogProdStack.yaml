@@ -2,9 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   Resources for a Web Blog production environment. Contains EC2 web server instances in an ASG and behind an ALB. 
   Should be deployed into an existing networking environment. 
-
-# Still work in progress, this stack won't run
-
 Parameters:
   VpcId:
     Description: ID of an existing VPC
@@ -88,15 +85,6 @@ Parameters:
       - cr1.8xlarge
       - cc2.8xlarge
       - cg1.4xlarge
-  # LoadBalancerType:
-  #   Description: Choose the type of Load Balancer desired
-  #   Default: application
-  #   Type: String
-  #   ConstraintDescription: choose application, gateway, or network.
-  #   AllowedValues:
-  #     - application
-  #     - gateway
-  #     - network
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
     Type: String
@@ -477,7 +465,6 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Subnets: !Ref Subnets
-      # Type: !Ref LoadBalancerType
   ALBListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     Properties:
@@ -537,61 +524,14 @@ Resources:
         - !Ref ALBTargetGroup
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT15M
+        Timeout: PT10M
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MinInstancesInService: 1
         MaxBatchSize: 1
-        PauseTime: PT15M
+        PauseTime: PT10M
         WaitOnResourceSignals: true
-  # # Change this into a LaunchTemplate so we can do auto-scaling
-  # WebServerInstance1:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     ImageId: !Ref LatestAmiID
-  #     InstanceType: !Ref InstanceType
-  #     SubnetId: !Ref PublicSubnet1
-  #     SecurityGroupIds:
-  #       - !Ref WebServerSG
-  #     KeyName: !Ref KeyName
-  #     UserData: !Base64 
-  #       'Fn::Join':
-  #         - ''
-  #         - - |
-  #             #!/bin/bash
-  #           - |
-  #             yum update -y
-  #           # Install LAMP Stack
-  #           - |
-  #             amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
-  #           - |
-  #             yum install -y httpd mariadb-server
-  #           - |
-  #             systemctl start httpd
-  #           - |
-  #             systemctl enable httpd
-  #           - |
-  #             systemctl is-enabled httpd
-  #           - |
-  #             echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
-  #           # Secure MariaDB installation
-  #           - |
-  #             systemctl start mariadb
-  #           - |
-  #             mysql_secure_installation
-  #           # Install SSl/TLS support (Does not have custom certificate implemented)
-  #           - |
-  #             yum install -y mod_ssl
-  #           - |
-  #             /etc/pki/tls/certs/make-dummy-cert localhost.crt
-  #           # Install WordPress blog
-  #           - |
-  #             wget https://wordpress.org/latest.tar.gz
-  #           - |
-  #             tar -xzf latest.tar.gz
-  #           - |
-  #             systemctl start mariadb
-  #           - |
+# I think this launch config is not sending a success signal to WebServerGroup causing rollback
   LaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Metadata:
