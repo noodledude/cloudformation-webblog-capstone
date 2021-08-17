@@ -17,6 +17,13 @@ Parameters:
       must be a list of at least two existing subnets associated with at least
       two different availability zones. They should be residing in the selected
       Virtual Private Cloud.
+  PrivateSubnets:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: The list of Private SubnetIds in your Virtual Private Cloud (VPC)
+    ConstraintDescription: >-
+      must be a list of at least two existing Private subnets associated with at least
+      two different availability zones. They should be residing in the selected
+      Virtual Private Cloud.      
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
@@ -734,6 +741,13 @@ Resources:
           ToPort: 3306
           SourceSecurityGroupId: !Ref WebServerSecurityGroup
       VpcId: !Ref VpcId
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Sub
+        - Subnet Group for ${DBName} database.
+        - {DBName: !Ref DBName}
+      SubnetIds: !Ref PrivateSubnets
   DBInstance:
     Type: 'AWS::RDS::DBInstance'
     Properties:
@@ -744,6 +758,7 @@ Resources:
       MasterUserPassword: !Ref DBPassword
       DBInstanceClass: !Ref DBClass
       AllocatedStorage: !Ref DBAllocatedStorage
+      DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups:
         - !GetAtt 
           - DBEC2SecurityGroup
