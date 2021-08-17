@@ -91,6 +91,12 @@ Parameters:
       - application
       - gateway
       - network
+  RootPassword:
+    Description: Enter a desired root user password for database
+    Type: String
+    AllowedPattern: [A-Za-z0-9]+
+    ConstraintDescription: password must match pattern [A-Za-z0-9]+.
+    NoEcho: True
 Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -118,8 +124,39 @@ Resources:
           - - |
               #!/bin/bash
             - |
-              #yum update -y
+              yum update -y
+            # Install LAMP Stack
             - |
+              amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+            - |
+              yum install -y httpd mariadb-server
+            - |
+              systemctl start httpd
+            - |
+              systemctl enable httpd
+            - |
+              systemctl is-enabled httpd
+            - |
+              echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+            # Secure MariaDB installation
+            - |
+              systemctl start mariadb
+            - |
+              mysql_secure_installation
+            # Install SSl/TLS support (Does not have custom certificate implemented)
+            - |
+              yum install -y mod_ssl
+            - |
+              /etc/pki/tls/certs/make-dummy-cert localhost.crt
+            # Install WordPress blog
+            - |
+              wget https://wordpress.org/latest.tar.gz
+            - |
+              tar -xzf latest.tar.gz
+            - |
+              systemctl start mariadb
+            - |
+              
 
   # Incomplete 
   ServerGroup:
