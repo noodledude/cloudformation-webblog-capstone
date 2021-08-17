@@ -7,6 +7,10 @@ AWSTemplate.yaml
 # Deprecated Files #
 ####################
 
+# Keys #
+#########
+*.pem
+*.ppk
 
 # Compiled source #
 ###################
