@@ -531,7 +531,6 @@ Resources:
         MaxBatchSize: 1
         PauseTime: PT10M
         WaitOnResourceSignals: true
-# I think this launch config is not sending a success signal to WebServerGroup causing rollback
   LaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Metadata:

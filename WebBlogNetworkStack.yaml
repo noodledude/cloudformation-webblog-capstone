@@ -2,11 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >
   Networking resources for Web Blog environment. 
   Contains 2 public and 2 private subnets in a VPC with IGW access. 
-
-# Used a template from ASecureCloud, which includes a NAT gateway, 
-# which I don't think we want/need because our private subnets are for databases? will only talk to 
-# public webserver instances?
-
 Resources:
     VPC:
       Type: "AWS::EC2::VPC"
@@ -21,7 +16,7 @@ Resources:
       Type: "AWS::EC2::Subnet"
       Properties:
         CidrBlock: "10.0.0.0/24"
-        MapPublicIpOnLaunch: false
+        MapPublicIpOnLaunch: true
         VpcId:
           Ref: "VPC"
         Tags:
@@ -36,7 +31,7 @@ Resources:
       Type: "AWS::EC2::Subnet"
       Properties:
         CidrBlock: "10.0.1.0/24"
-        MapPublicIpOnLaunch: false
+        MapPublicIpOnLaunch: true
         VpcId:
           Ref: "VPC"
         Tags:
@@ -107,52 +102,6 @@ Resources:
           Ref: "RouteTablePublic"
         GatewayId:
           Ref: "Igw"
-    RouteTablePrivate1:
-      Type: "AWS::EC2::RouteTable"
-      Properties:
-        VpcId:
-          Ref: "VPC"
-        Tags:
-          - Key: "Name"
-            Value: "Private Route Table A"
-    RouteTablePrivate1Association1:
-      Type: "AWS::EC2::SubnetRouteTableAssociation"
-      Properties:
-        RouteTableId:
-          Ref: "RouteTablePrivate1"
-        SubnetId:
-          Ref: "PrivateSubnet1"
-    RouteTablePrivate1Route0:
-      Type: "AWS::EC2::Route"
-      Properties:
-        DestinationCidrBlock: "0.0.0.0/0"
-        RouteTableId:
-          Ref: "RouteTablePrivate1"
-        NatGatewayId:
-          Ref: "NatGw1"
-    RouteTablePrivate2:
-      Type: "AWS::EC2::RouteTable"
-      Properties:
-        VpcId:
-          Ref: "VPC"
-        Tags:
-          - Key: "Name"
-            Value: "Private Route Table B"
-    RouteTablePrivate2Association1:
-      Type: "AWS::EC2::SubnetRouteTableAssociation"
-      Properties:
-        RouteTableId:
-          Ref: "RouteTablePrivate2"
-        SubnetId:
-          Ref: "PrivateSubnet2"
-    RouteTablePrivate2Route0:
-      Type: "AWS::EC2::Route"
-      Properties:
-        DestinationCidrBlock: "0.0.0.0/0"
-        RouteTableId:
-          Ref: "RouteTablePrivate2"
-        NatGatewayId:
-          Ref: "NatGw1"
     Igw:
       Type: "AWS::EC2::InternetGateway"
       Properties: {}
@@ -163,20 +112,4 @@ Resources:
           Ref: "VPC"
         InternetGatewayId:
           Ref: "Igw"
-    NatGw1:
-      Type: "AWS::EC2::NatGateway"
-      Properties:
-        SubnetId:
-          Ref: "PublicSubnet1"
-        AllocationId:
-          Fn::GetAtt:
-            - "NatGw1ElasticIP"
-            - "AllocationId"
-        Tags:
-          - Key: "Name"
-            Value: "NAT GW A"
-    NatGw1ElasticIP:
-      Type: "AWS::EC2::EIP"
-      Properties:
-        Domain: "vpc"
   
